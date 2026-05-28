@@ -71,6 +71,7 @@ Melanoma/
 This project uses the Melanoma dataset available on Kaggle:
 
 Dataset Link:
+https://www.kaggle.com/datasets/acsmanikoushik/melanoma-dataset
 https://www.kaggle.com/datasets/drscarlat/melanoma
 
 The original data is based on the **HAM10000 (Human Against Machine with 10,000 Training Images)** dataset.
