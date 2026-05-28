@@ -1,0 +1,22 @@
+https://www.kaggle.com/datasets/drscarlat/melanoma
+
+
+The original data is the HAM10k images dataset, Human Against Machine with 10,000 Training Images, which is freely available.
+
+The dermoscopic images in the HAM10k dataset have been curated and normalized in terms of luminosity, colors, resolution, etc. The actual diagnosis was validated by histopathology (a.k.a. source of truth) in more than 50 percent of the cases, which is twice more than the previously available skin lesion datasets. The rest of the lesions’ diagnosis was based on a consensus of dermatologists.
+
+Instead of trying to classify seven skin lesions with a highly imbalanced dataset, let’s simplify the task to the diagnosis of Melanoma vs. Not Melanoma. If we summarize the above categories into two groups, the result is still an imbalanced dataset with:
+
+1,113 Melanoma images
+8,902 Not Melanoma
+
+We can apply data augmentation to the Melanoma group and bring the number of images to be similar to the Not Melanoma group.
+
+Data augmentation allows the model to be exposed to various modifications of an image of melanoma. This in turn allows the model to learn and later generalize, for example, that a melanoma pointing to the left is still a melanoma if it points to the right. The previously imbalanced 10k images become a 17.8k balanced dataset after the data augmentation of the melanoma group:
+
+8,903 Melanoma images
+8,902 Not Melanoma images
+
+Details about the augmentation process can be found at HIStalk
+
+A Comparative Study of Neural Network Architectures for Lesion Segmentation and Melanoma Detection was published April 2020, using this dataset for melanoma classification comparison between several image analysis NN architectures.

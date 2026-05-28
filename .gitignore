@@ -1,0 +1,11 @@
+﻿.vscode/
+Dataset/
+testImages/
+black/
+*.zip
+*.keras
+*.h5
+model/
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
