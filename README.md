@@ -1,35 +1,69 @@
-# 🩺 Melanoma Detection Using DenseNet121
+# 🩺 Melanoma Skin Cancer Detection Using DenseNet121
 
 ## 📌 Overview
 
-This project is a Deep Learning-based web application developed to detect **Melanoma Skin Cancer** from dermoscopic skin lesion images using the **DenseNet121** architecture.
+This project is a Deep Learning-based web application developed to detect **Melanoma Skin Cancer** from dermoscopic skin lesion images using the **DenseNet121 Transfer Learning Architecture**.
 
-The application allows users to:
+The application provides a healthcare-oriented interface where users can:
 
-* Train a Deep Learning model
-* Upload skin lesion images
+* Enter patient details (Name, Age, Gender, Patient ID)
+* Upload dermoscopic skin lesion images
 * Predict whether the lesion is:
 
-  * **Melanoma**
-  * **Not Melanoma**
+  * ⚠️ Melanoma
+  * ✅ Not Melanoma
+* View confidence scores and recommendations
+* Explore dataset and model performance information
 
-The project is implemented using **TensorFlow, Keras, OpenCV, and Streamlit**.
-
----
-
-# 🚀 Features
-
-* 📂 Upload skin lesion images
-* 🧠 DenseNet121 transfer learning model
-* 📊 Model training and evaluation
-* 📈 Accuracy, Precision, Recall, and F1-Score metrics
-* 🔍 Real-time melanoma prediction
-* 📉 Confusion matrix visualization
-* 🖥️ Interactive Streamlit web interface
+The project is implemented using **TensorFlow, Keras, OpenCV, NumPy, Scikit-learn, and Streamlit**.
 
 ---
 
-# 🛠️ Technologies Used
+## 🚀 Features
+
+### 👤 Patient Information Module
+
+* Patient Name
+* Patient ID
+* Age
+* Gender
+
+### 📂 Image Upload
+
+* Upload skin lesion images
+* Supports JPG, JPEG, PNG formats
+
+### 🧠 Deep Learning Model
+
+* DenseNet121 Transfer Learning
+* Binary Classification
+* Automated Feature Extraction
+
+### 📊 Model Evaluation
+
+* Accuracy
+* Precision
+* Recall
+* F1-Score
+* Confusion Matrix
+
+### 🔍 Real-Time Prediction
+
+* Instant Skin Lesion Analysis
+* Confidence Score Display
+* Medical Recommendation Section
+
+### 🖥️ Interactive Streamlit Dashboard
+
+* Dashboard Overview
+* Prediction Page
+* Dataset Information
+* Model Performance
+* About Project
+
+---
+
+## 🛠️ Technologies Used
 
 * Python
 * TensorFlow
@@ -44,7 +78,7 @@ The project is implemented using **TensorFlow, Keras, OpenCV, and Streamlit**.
 
 ---
 
-# 📂 Project Structure
+## 📂 Project Structure
 
 ```text
 Melanoma/
@@ -53,100 +87,84 @@ Melanoma/
 │   ├── Melanoma/
 │   └── NotMelanoma/
 │
-├── model/
-│   └── densenet_model.keras
-│
-├── testImages/
-├── main.py
+├── melanoma_model.keras
+├── app.py
 ├── requirements.txt
-├── MelanomaDetection.ipynb
 ├── README.md
-└── screenshots/
+├── MelanomaDetection.ipynb
+└── testImages/
 ```
 
 ---
 
-# 📊 Dataset
+## 📊 Dataset
 
-This project uses the Melanoma dataset available on Kaggle:
+This project uses melanoma datasets available on Kaggle:
 
-Dataset Link:
-https://www.kaggle.com/datasets/acsmanikoushik/melanoma-dataset
-https://www.kaggle.com/datasets/drscarlat/melanoma
+Dataset Links:
 
-The original data is based on the **HAM10000 (Human Against Machine with 10,000 Training Images)** dataset.
+* https://www.kaggle.com/datasets/acsmanikoushik/melanoma-dataset
+* https://www.kaggle.com/datasets/drscarlat/melanoma
 
-The dataset contains dermoscopic images of skin lesions curated and normalized for:
+The original data is based on the HAM10000 (Human Against Machine with 10,000 Training Images) dataset.
 
-* Luminosity
-* Color consistency
-* Resolution quality
+### Dataset Simplification
 
-More than 50% of the diagnoses were validated using histopathology, while the remaining cases were verified by expert dermatologists.
-
----
-
-## Dataset Simplification
-
-Instead of classifying seven different skin lesion categories, this project simplifies the classification into:
+Instead of classifying multiple skin lesion categories, the dataset was simplified into:
 
 * Melanoma
 * Not Melanoma
 
-### Original Dataset Distribution
+### Original Distribution
 
-* 1,113 Melanoma images
-* 8,902 Not Melanoma images
+| Category     | Images |
+| ------------ | ------ |
+| Melanoma     | 1,113  |
+| Not Melanoma | 8,902  |
 
-### Data Augmentation
+### After Data Augmentation
 
-Data augmentation techniques were applied to balance the dataset.
+| Category     | Images |
+| ------------ | ------ |
+| Melanoma     | 8,903  |
+| Not Melanoma | 8,902  |
 
-After augmentation:
+### Total Images
 
-* 8,903 Melanoma images
-* 8,902 Not Melanoma images
+17,805 dermoscopic skin lesion images
 
-Final dataset size:
-
-* Approximately **17,805 images**
-
-⚠️ Dataset is not uploaded to GitHub because it contains more than 10,000 images and exceeds GitHub storage recommendations.
+> Dataset is not uploaded to GitHub because of its large size and GitHub storage limitations.
 
 ---
 
-# 🧠 Model Architecture
+## 🧠 Model Architecture
 
-The project uses **DenseNet121** with transfer learning.
+The project uses **DenseNet121 with Transfer Learning**.
 
-### Model Workflow
+### Workflow
 
 1. Load Dataset
 2. Image Preprocessing
 3. Train-Test Split
 4. DenseNet121 Feature Extraction
-5. CNN Classification Layers
+5. Classification Layers
 6. Model Training
 7. Performance Evaluation
-8. Image Prediction
+8. Skin Lesion Prediction
 
 ---
 
-# 📊 Overall Model Performance
+## 📈 Overall Model Performance
 
-The DenseNet121 model was trained and evaluated on the balanced melanoma dataset containing approximately **17,805 dermoscopic skin lesion images**.
+### Dataset Distribution
 
-## Total Dataset Distribution
+| Category     | Images |
+| ------------ | ------ |
+| Melanoma     | 8,903  |
+| Not Melanoma | 8,902  |
+| Total        | 17,805 |
 
-| Category         | Total Images |
-| ---------------- | ------------ |
-| Melanoma         | 8,903        |
-| Not Melanoma     | 8,902        |
-| **Total Images** | **17,805**   |
-
----
-
-## 📈 Performance Metrics
+### Performance Metrics
 
 | Metric    | Performance |
 | --------- | ----------- |
@@ -155,102 +173,112 @@ The DenseNet121 model was trained and evaluated on the balanced melanoma dataset
 | Recall    | 96%         |
 | F1-Score  | 95%         |
 
----
+### Evaluation
 
-## 📉 Evaluation Details
-
-The performance metrics were calculated using:
+The model was evaluated using:
 
 * True Positives (TP)
 * True Negatives (TN)
 * False Positives (FP)
 * False Negatives (FN)
 
-A confusion matrix was generated to analyze prediction accuracy between:
-
-* Melanoma images
-* Not Melanoma images
-
-The model demonstrated strong capability in distinguishing melanoma skin lesions from non-melanoma lesions using Deep Learning and transfer learning with DenseNet121.
+A confusion matrix was generated to visualize prediction performance.
 
 ---
 
-# ⚙️ Installation
+## ⚙️ Installation
 
-## Clone Repository
+### Clone Repository
 
 ```bash
-git clone https://github.com/your-username/Melanoma.git
-cd Melanoma
+git clone https://github.com/koushikarnuri/melanoma-skin-cancer-detection.git
+cd melanoma-skin-cancer-detection
 ```
 
----
-
-## Install Requirements
+### Install Requirements
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-# ▶️ Run the Application
+### Run Application
 
 ```bash
-streamlit run main.py
+streamlit run app.py
 ```
 
 ---
 
-# 🖥️ Streamlit Application
+## 🩺 Streamlit Application
 
-The Streamlit application provides two main options:
+### Dashboard
 
-## 1️⃣ Train Model
+* Dataset Statistics
+* Model Information
+* Project Overview
 
-* Loads dataset
-* Trains DenseNet121 model
-* Saves best model
-* Displays evaluation metrics
+### Predict Page
 
-## 2️⃣ Predict Image
+* Enter Patient Details
+* Upload Skin Image
+* Receive Prediction Result
+* View Confidence Score
+* Medical Recommendation
 
-* Upload skin lesion image
-* Predict melanoma status
-* Display confidence score
+### Model Performance
+
+* Accuracy Metrics
+* Evaluation Summary
+
+### Dataset Information
+
+* Dataset Description
+* Image Statistics
+
+### About
+
+* Project Details
+* Technologies Used
+* Author Information
 
 ---
 
-# 📸 Screenshots
+## 📸 Screenshots
 
 Add screenshots of:
 
-* Training page
-* Prediction page
-* Confusion matrix
-* Output predictions
-
-inside the `screenshots/` folder.
-
----
-
-# 🔮 Future Improvements
-
-* Improve model accuracy
-* Add multiple skin disease detection
-* Deploy on cloud platforms
-* Mobile application integration
-* Real-time webcam prediction
-* Explainable AI integration
+* Dashboard
+* Patient Information Page
+* Prediction Page
+* Model Performance Page
+* Output Results
 
 ---
 
-# 👨‍💻 Author
+## 🔮 Future Improvements
+
+* Multi-Class Skin Disease Detection
+* Mobile Application Integration
+* Cloud Deployment
+* Explainable AI (XAI)
+* PDF Medical Report Generation
+* Real-Time Camera Prediction
+
+---
+
+## 👨‍💻 Author
 
 **Koushik Arnuri**
 
+AI & Data Science Enthusiast
+
+GitHub:
+https://github.com/koushikarnuri
+
 ---
 
-# 📜 License
+## 📜 License
 
 This project is developed for educational and research purposes only.
+
+The predictions generated by this application should not be considered a substitute for professional medical diagnosis. Always consult a qualified dermatologist or healthcare professional for medical advice.
