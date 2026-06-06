@@ -3,162 +3,197 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 from PIL import Image
 import numpy as np
-import time
 
-# -----------------------
-# PAGE CONFIG
-# -----------------------
+# --------------------
+# CONFIG
+# --------------------
 st.set_page_config(
-    page_title="Melanoma Skin Cancer Detection",
+    page_title="Melanoma AI System",
     page_icon="🩺",
     layout="wide"
 )
 
-# -----------------------
-# CUSTOM CSS
-# -----------------------
-st.markdown("""
-<style>
-.main {
-    background-color: #f5f7fa;
-}
-
-.title {
-    text-align:center;
-    font-size:40px;
-    font-weight:bold;
-    color:#0E76A8;
-}
-
-.subtitle {
-    text-align:center;
-    font-size:18px;
-    color:gray;
-}
-
-.result-box {
-    padding:20px;
-    border-radius:10px;
-    background-color:#ffffff;
-    box-shadow:0px 0px 10px rgba(0,0,0,0.1);
-}
-</style>
-""", unsafe_allow_html=True)
-
-# -----------------------
+# --------------------
 # LOAD MODEL
-# -----------------------
+# --------------------
 @st.cache_resource
-def load_my_model():
+def get_model():
     return load_model("melanoma_model.keras")
 
-model = load_my_model()
+model = get_model()
 
-# -----------------------
-# HEADER
-# -----------------------
-st.markdown(
-    '<p class="title">🩺 Melanoma Skin Cancer Detection</p>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<p class="subtitle">AI Powered Skin Lesion Classification System</p>',
-    unsafe_allow_html=True
-)
-
-st.divider()
-
-# -----------------------
+# --------------------
 # SIDEBAR
-# -----------------------
-st.sidebar.title("📌 Project Information")
+# --------------------
+st.sidebar.title("🩺 Melanoma AI")
 
-st.sidebar.info("""
-### Model Details
+page = st.sidebar.radio(
+    "Navigation",
+    [
+        "🏠 Dashboard",
+        "🔍 Predict",
+        "📊 Model Performance",
+        "📂 Dataset Info",
+        "👨‍💻 About"
+    ]
+)
 
-- Model: CNN
-- Classes: Melanoma / Not Melanoma
-- Image Size: 128 x 128
-- Framework: TensorFlow
-- Interface: Streamlit
-""")
+# --------------------
+# DASHBOARD
+# --------------------
+if page == "🏠 Dashboard":
 
-st.sidebar.success("Developed by Koushik Arnuri")
+    st.title("🩺 Melanoma Skin Cancer Detection")
 
-# -----------------------
-# MAIN LAYOUT
-# -----------------------
-col1, col2 = st.columns([1,1])
+    col1,col2,col3,col4 = st.columns(4)
 
-with col1:
+    col1.metric("Dataset Images","10,682")
+    col2.metric("Classes","2")
+    col3.metric("Accuracy","77.48%")
+    col4.metric("Framework","TensorFlow")
 
-    st.subheader("📤 Upload Skin Lesion Image")
+    st.divider()
 
-    uploaded_file = st.file_uploader(
-        "Upload JPG, JPEG or PNG Image",
+    st.markdown("""
+    ## 📌 Project Overview
+
+    This system uses Deep Learning to classify skin lesions as:
+
+    - Melanoma
+    - Not Melanoma
+
+    The model was trained using dermoscopic skin lesion images.
+    """)
+
+# --------------------
+# PREDICT
+# --------------------
+elif page == "🔍 Predict":
+
+    st.title("🔍 Skin Lesion Prediction")
+
+    uploaded = st.file_uploader(
+        "Upload Skin Lesion Image",
         type=["jpg","jpeg","png"]
     )
 
-    if uploaded_file:
+    if uploaded:
 
-        image = Image.open(uploaded_file).convert("RGB")
+        image = Image.open(uploaded).convert("RGB")
 
-        st.image(
-            image,
-            caption="Uploaded Image",
-            use_container_width=True
-        )
+        col1,col2 = st.columns(2)
 
-with col2:
-
-    st.subheader("🔍 Prediction Result")
-
-    if uploaded_file:
+        with col1:
+            st.image(
+                image,
+                caption="Uploaded Image",
+                use_container_width=True
+            )
 
         img = image.resize((128,128))
+        img = np.array(img)/255.0
+        img = np.expand_dims(img,axis=0)
 
-        img_array = np.array(img)/255.0
-        img_array = np.expand_dims(img_array, axis=0)
+        prediction = model.predict(img)[0][0]
 
-        with st.spinner("Analyzing Skin Lesion..."):
+        with col2:
 
-            time.sleep(2)
+            st.subheader("Prediction Result")
 
-            prediction = model.predict(img_array)[0][0]
+            if prediction < 0.5:
 
-        if prediction < 0.5:
+                confidence = (1-prediction)*100
 
-            confidence = (1-prediction)*100
+                st.error("⚠️ Melanoma Detected")
 
-            st.error("⚠️ Melanoma Detected")
+                st.progress(int(confidence))
 
-            st.metric(
-                label="Confidence Score",
-                value=f"{confidence:.2f}%"
-            )
+                st.metric(
+                    "Confidence",
+                    f"{confidence:.2f}%"
+                )
 
-        else:
+            else:
 
-            confidence = prediction*100
+                confidence = prediction*100
 
-            st.success("✅ Not Melanoma")
+                st.success("✅ Not Melanoma")
 
-            st.metric(
-                label="Confidence Score",
-                value=f"{confidence:.2f}%"
-            )
+                st.progress(int(confidence))
 
-# -----------------------
-# FOOTER
-# -----------------------
-st.divider()
+                st.metric(
+                    "Confidence",
+                    f"{confidence:.2f}%"
+                )
 
-st.markdown("""
-### 📖 About
+# --------------------
+# MODEL PERFORMANCE
+# --------------------
+elif page == "📊 Model Performance":
 
-Melanoma is a serious form of skin cancer.
-This AI system assists in identifying suspicious lesions using Deep Learning techniques.
+    st.title("📊 Model Performance")
 
-⚠️ This tool is intended for educational and research purposes only and should not replace professional medical diagnosis.
-""")
+    st.metric("Training Accuracy","73.36%")
+    st.metric("Validation Accuracy","77.48%")
+
+    st.markdown("""
+    ### Performance Summary
+
+    - CNN Based Model
+    - Binary Classification
+    - Image Size: 128x128
+    - Optimizer: Adam
+    - Loss: Binary Crossentropy
+    """)
+
+# --------------------
+# DATASET INFO
+# --------------------
+elif page == "📂 Dataset Info":
+
+    st.title("📂 Dataset Information")
+
+    st.markdown("""
+    ### Dataset Structure
+
+    Dataset/
+    ├── Melanoma
+    └── NotMelanoma
+
+    ### Classes
+
+    - Melanoma
+    - Not Melanoma
+
+    ### Source
+
+    HAM10000 inspired skin lesion dataset.
+    """)
+
+# --------------------
+# ABOUT
+# --------------------
+elif page == "👨‍💻 About":
+
+    st.title("👨‍💻 About Project")
+
+    st.markdown("""
+    ### Melanoma Skin Cancer Detection
+
+    Developed using:
+
+    - Python
+    - TensorFlow
+    - Streamlit
+    - NumPy
+    - PIL
+
+    ### Author
+
+    Koushik Arnuri
+
+    ### Disclaimer
+
+    This application is for educational and research purposes only.
+    It should not replace professional medical diagnosis.
+    """)
