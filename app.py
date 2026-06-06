@@ -4,27 +4,27 @@ from tensorflow.keras.models import load_model
 from PIL import Image
 import numpy as np
 
-# --------------------
-# CONFIG
-# --------------------
+# =========================
+# PAGE CONFIG
+# =========================
 st.set_page_config(
     page_title="Melanoma AI System",
     page_icon="🩺",
     layout="wide"
 )
 
-# --------------------
+# =========================
 # LOAD MODEL
-# --------------------
+# =========================
 @st.cache_resource
-def get_model():
+def load_my_model():
     return load_model("melanoma_model.keras")
 
-model = get_model()
+model = load_my_model()
 
-# --------------------
+# =========================
 # SIDEBAR
-# --------------------
+# =========================
 st.sidebar.title("🩺 Melanoma AI")
 
 page = st.sidebar.radio(
@@ -38,117 +38,211 @@ page = st.sidebar.radio(
     ]
 )
 
-# --------------------
+# =========================
 # DASHBOARD
-# --------------------
+# =========================
 if page == "🏠 Dashboard":
 
     st.title("🩺 Melanoma Skin Cancer Detection")
 
-    col1,col2,col3,col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Dataset Images","10,682")
-    col2.metric("Classes","2")
-    col3.metric("Accuracy","77.48%")
-    col4.metric("Framework","TensorFlow")
+    col1.metric("Dataset Images", "10,682")
+    col2.metric("Classes", "2")
+    col3.metric("Accuracy", "77.48%")
+    col4.metric("Framework", "TensorFlow")
 
     st.divider()
 
     st.markdown("""
     ## 📌 Project Overview
 
-    This system uses Deep Learning to classify skin lesions as:
+    This AI system helps classify skin lesion images into:
 
     - Melanoma
     - Not Melanoma
 
-    The model was trained using dermoscopic skin lesion images.
+    Upload a dermoscopic image and receive an instant prediction.
     """)
 
-# --------------------
-# PREDICT
-# --------------------
+# =========================
+# PREDICT PAGE
+# =========================
 elif page == "🔍 Predict":
 
-    st.title("🔍 Skin Lesion Prediction")
+    st.title("🩺 Skin Cancer Screening")
 
-    uploaded = st.file_uploader(
-        "Upload Skin Lesion Image",
-        type=["jpg","jpeg","png"]
+    st.markdown("### 👤 Patient Information")
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        patient_name = st.text_input(
+            "Patient Name",
+            placeholder="Enter patient name"
+        )
+
+        patient_age = st.number_input(
+            "Age",
+            min_value=1,
+            max_value=120,
+            value=25
+        )
+
+    with c2:
+        gender = st.selectbox(
+            "Gender",
+            ["Male", "Female", "Other"]
+        )
+
+        patient_id = st.text_input(
+            "Patient ID",
+            placeholder="Optional"
+        )
+
+    st.divider()
+
+    uploaded_file = st.file_uploader(
+        "📤 Upload Skin Lesion Image",
+        type=["jpg", "jpeg", "png"]
     )
 
-    if uploaded:
+    if uploaded_file:
 
-        image = Image.open(uploaded).convert("RGB")
+        image = Image.open(uploaded_file).convert("RGB")
 
-        col1,col2 = st.columns(2)
+        st.success(
+            f"Hi {patient_name}, thank you for uploading your skin lesion image."
+        )
+
+        col1, col2 = st.columns([1,1])
 
         with col1:
+
+            st.subheader("Uploaded Image")
+
             st.image(
                 image,
-                caption="Uploaded Image",
                 use_container_width=True
             )
 
         img = image.resize((128,128))
-        img = np.array(img)/255.0
-        img = np.expand_dims(img,axis=0)
+        img = np.array(img) / 255.0
+        img = np.expand_dims(img, axis=0)
 
-        prediction = model.predict(img)[0][0]
+        prediction = model.predict(img, verbose=0)[0][0]
 
         with col2:
 
-            st.subheader("Prediction Result")
+            st.subheader("🧾 Medical Screening Report")
+
+            st.write(f"**Patient Name:** {patient_name}")
+            st.write(f"**Patient ID:** {patient_id}")
+            st.write(f"**Age:** {patient_age}")
+            st.write(f"**Gender:** {gender}")
+
+            st.divider()
 
             if prediction < 0.5:
 
-                confidence = (1-prediction)*100
+                confidence = (1-prediction) * 100
 
-                st.error("⚠️ Melanoma Detected")
-
-                st.progress(int(confidence))
+                st.error("⚠️ MELANOMA DETECTED")
 
                 st.metric(
-                    "Confidence",
+                    "Confidence Score",
                     f"{confidence:.2f}%"
                 )
+
+                st.warning("""
+                Recommendation:
+
+                • Consult a dermatologist immediately.
+                • Perform additional clinical examination.
+                • Consider biopsy confirmation.
+                """)
 
             else:
 
-                confidence = prediction*100
+                confidence = prediction * 100
 
-                st.success("✅ Not Melanoma")
-
-                st.progress(int(confidence))
+                st.success("✅ NOT MELANOMA")
 
                 st.metric(
-                    "Confidence",
+                    "Confidence Score",
                     f"{confidence:.2f}%"
                 )
 
-# --------------------
+                st.info("""
+                Recommendation:
+
+                • No melanoma detected by the model.
+                • Continue regular skin monitoring.
+                • Consult a dermatologist if symptoms persist.
+                """)
+
+        st.divider()
+
+        st.subheader("📋 Final Result")
+
+        if prediction < 0.5:
+
+            st.error(
+                f"""
+                Patient: {patient_name}
+
+                Result: Melanoma Detected
+
+                Confidence: {confidence:.2f}%
+                """
+            )
+
+        else:
+
+            st.success(
+                f"""
+                Patient: {patient_name}
+
+                Result: Not Melanoma
+
+                Confidence: {confidence:.2f}%
+                """
+            )
+
+# =========================
 # MODEL PERFORMANCE
-# --------------------
+# =========================
 elif page == "📊 Model Performance":
 
     st.title("📊 Model Performance")
 
-    st.metric("Training Accuracy","73.36%")
-    st.metric("Validation Accuracy","77.48%")
+    col1, col2 = st.columns(2)
+
+    col1.metric(
+        "Training Accuracy",
+        "73.36%"
+    )
+
+    col2.metric(
+        "Validation Accuracy",
+        "77.48%"
+    )
+
+    st.divider()
 
     st.markdown("""
-    ### Performance Summary
+    ### Model Summary
 
-    - CNN Based Model
+    - CNN Based Architecture
     - Binary Classification
-    - Image Size: 128x128
+    - Input Size: 128 × 128
     - Optimizer: Adam
-    - Loss: Binary Crossentropy
+    - Loss Function: Binary Crossentropy
     """)
 
-# --------------------
-# DATASET INFO
-# --------------------
+# =========================
+# DATASET PAGE
+# =========================
 elif page == "📂 Dataset Info":
 
     st.title("📂 Dataset Information")
@@ -162,38 +256,47 @@ elif page == "📂 Dataset Info":
 
     ### Classes
 
-    - Melanoma
-    - Not Melanoma
+    • Melanoma
+
+    • Not Melanoma
+
+    ### Total Images
+
+    • 10,682 Images
 
     ### Source
 
     HAM10000 inspired skin lesion dataset.
     """)
 
-# --------------------
-# ABOUT
-# --------------------
+# =========================
+# ABOUT PAGE
+# =========================
 elif page == "👨‍💻 About":
 
     st.title("👨‍💻 About Project")
 
     st.markdown("""
-    ### Melanoma Skin Cancer Detection
+    ## Melanoma Skin Cancer Detection
 
-    Developed using:
+    This application uses Artificial Intelligence and Deep Learning
+    to classify skin lesion images.
+
+    ### Technologies Used
 
     - Python
     - TensorFlow
     - Streamlit
     - NumPy
-    - PIL
+    - Pillow
 
-    ### Author
+    ### Developed By
 
     Koushik Arnuri
 
     ### Disclaimer
 
-    This application is for educational and research purposes only.
-    It should not replace professional medical diagnosis.
+    This application is intended for educational and research purposes only.
+
+    It should not be used as a substitute for professional medical advice.
     """)
