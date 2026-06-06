@@ -2,6 +2,7 @@ streamlit
 numpy
 pandas
 matplotlib
-tensorflow-cpu==2.19.0
 Pillow
 scikit-learn
+tensorflow-cpu==2.19.0
+opencv-python-headless
