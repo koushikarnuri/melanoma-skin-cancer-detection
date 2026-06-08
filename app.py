@@ -115,7 +115,7 @@ elif page == "🔍 Predict":
             f"Hi {patient_name}, thank you for uploading your skin lesion image."
         )
 
-        col1, col2 = st.columns([1,1])
+        col1, col2 = st.columns([1, 1])
 
         with col1:
 
@@ -126,11 +126,16 @@ elif page == "🔍 Predict":
                 use_container_width=True
             )
 
-        img = image.resize((128,128))
-        img = np.array(img) / 255.0
+        # FIXED: Preprocessing with 32x32 input size
+        img = image.resize((32, 32))
+        img = np.array(img).astype("float32") / 255.0
         img = np.expand_dims(img, axis=0)
 
-        prediction = model.predict(img, verbose=0)[0][0]
+        # FIXED: Get prediction
+        prediction = float(model.predict(img, verbose=0)[0][0])
+
+        # Debug: Show raw prediction
+        st.write(f"**Raw Prediction Score:** {prediction:.4f}")
 
         with col2:
 
@@ -143,9 +148,10 @@ elif page == "🔍 Predict":
 
             st.divider()
 
-            if prediction < 0.5:
+            # FIXED: Corrected threshold logic (>0.5 = melanoma)
+            if prediction > 0.5:
 
-                confidence = (1-prediction) * 100
+                confidence = prediction * 100
 
                 st.error("⚠️ MELANOMA DETECTED")
 
@@ -164,7 +170,7 @@ elif page == "🔍 Predict":
 
             else:
 
-                confidence = prediction * 100
+                confidence = (1 - prediction) * 100
 
                 st.success("✅ NOT MELANOMA")
 
@@ -185,7 +191,8 @@ elif page == "🔍 Predict":
 
         st.subheader("📋 Final Result")
 
-        if prediction < 0.5:
+        # FIXED: Corrected logic matches above
+        if prediction > 0.5:
 
             st.error(
                 f"""
@@ -233,11 +240,16 @@ elif page == "📊 Model Performance":
     st.markdown("""
     ### Model Summary
 
-    - CNN Based Architecture
+    - CNN Based Architecture (DenseNet121)
     - Binary Classification
-    - Input Size: 128 × 128
+    - Input Size: 32 × 32
     - Optimizer: Adam
     - Loss Function: Binary Crossentropy
+    
+    ### Prediction Logic
+    
+    - Prediction > 0.5 → **Melanoma Detected**
+    - Prediction ≤ 0.5 → **Not Melanoma**
     """)
 
 # =========================
@@ -257,7 +269,6 @@ elif page == "📂 Dataset Info":
     ### Classes
 
     • Melanoma
-
     • Not Melanoma
 
     ### Total Images
@@ -285,18 +296,29 @@ elif page == "👨‍💻 About":
     ### Technologies Used
 
     - Python
-    - TensorFlow
+    - TensorFlow / Keras
     - Streamlit
     - NumPy
-    - Pillow
+    - Pillow (PIL)
+
+    ### Model Architecture
+
+    - DenseNet121 with Transfer Learning
+    - Input: 32 × 32 RGB images
+    - Output: Binary classification (Melanoma / Not Melanoma)
+    - Training Dataset: HAM10000
 
     ### Developed By
 
     Koushik Arnuri
 
-    ### Disclaimer
+    ### Important Disclaimer
 
-    This application is intended for educational and research purposes only.
+    ⚠️ **MEDICAL DISCLAIMER**
 
-    It should not be used as a substitute for professional medical advice.
+    This application is intended for **educational and research purposes only**.
+
+    It should **NOT** be used as a substitute for professional medical advice, diagnosis, or treatment.
+
+    Always consult a qualified dermatologist or healthcare professional for medical concerns.
     """)
