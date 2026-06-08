@@ -141,8 +141,8 @@ elif page == "🔍 Predict":
             
             st.write(f"Raw Output: {raw_output}")
 
-            melanoma_prob = float(raw_output[0][0])
-            not_melanoma_prob = float(raw_output[0][1])
+            melanoma_prob = float(raw_output[0][1])
+            not_melanoma_prob = float(raw_output[0][0])
 
             st.write(f"Melanoma Prob: {melanoma_prob:.4f}")
             st.write(f"Not Melanoma Prob: {not_melanoma_prob:.4f}")
@@ -162,9 +162,9 @@ elif page == "🔍 Predict":
 
             st.divider()
 
-            if melanoma_prob < not_melanoma_prob:
+            if melanoma_prob > not_melanoma_prob:
 
-                confidence = not_melanoma_prob * 100
+                confidence = melanoma_prob * 100
 
                 st.error("⚠️ MELANOMA DETECTED")
 
@@ -183,7 +183,7 @@ elif page == "🔍 Predict":
 
             else:
 
-                confidence = melanoma_prob * 100
+                confidence = not_melanoma_prob * 100
 
                 st.success("✅ NOT MELANOMA")
 
@@ -204,7 +204,7 @@ elif page == "🔍 Predict":
 
         st.subheader("📋 Final Result")
 
-        if melanoma_prob < not_melanoma_prob:
+        if melanoma_prob > not_melanoma_prob:
 
             st.error(
                 f"""
