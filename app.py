@@ -1,5 +1,8 @@
 import streamlit as st
-from tensorflow.keras.models import load_model
+import tensorflow as tf
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, AveragePooling2D, Flatten, Dropout
+from tensorflow.keras.applications import DenseNet121
 from PIL import Image
 import numpy as np
 import cv2
@@ -12,7 +15,31 @@ st.set_page_config(
 
 @st.cache_resource
 def load_my_model():
-    return load_model("melanoma_model.keras")
+    densenet = DenseNet121(
+        input_shape=(32, 32, 3),
+        include_top=False,
+        weights='imagenet'
+    )
+    
+    for layer in densenet.layers:
+        layer.trainable = False
+    
+    x = densenet.output
+    x = AveragePooling2D(pool_size=(1, 1))(x)
+    x = Flatten(name="flatten")(x)
+    x = Dense(128, activation='relu')(x)
+    x = Dropout(0.3)(x)
+    output = Dense(2, activation='softmax')(x)
+    
+    model = Model(inputs=densenet.input, outputs=output)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    
+    try:
+        model.load_weights("melanoma_model.keras")
+    except:
+        st.warning("⚠️ Model weights not found or incompatible")
+    
+    return model
 
 model = load_my_model()
 labels = ["Melanoma", "NotMelanoma"]
@@ -46,38 +73,19 @@ elif page == "🔍 Predict":
     c1, c2 = st.columns(2)
     
     with c1:
-        patient_name = st.text_input(
-            "Patient Name",
-            placeholder="Enter patient name"
-        )
-        patient_age = st.number_input(
-            "Age",
-            min_value=1,
-            max_value=120,
-            value=25
-        )
+        patient_name = st.text_input("Patient Name", placeholder="Enter patient name")
+        patient_age = st.number_input("Age", min_value=1, max_value=120, value=25)
     
     with c2:
-        gender = st.selectbox(
-            "Gender",
-            ["Male", "Female", "Other"]
-        )
-        patient_id = st.text_input(
-            "Patient ID",
-            placeholder="Optional"
-        )
+        gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+        patient_id = st.text_input("Patient ID", placeholder="Optional")
     
     st.divider()
-    uploaded_file = st.file_uploader(
-        "📤 Upload Skin Lesion Image",
-        type=["jpg", "jpeg", "png"]
-    )
+    uploaded_file = st.file_uploader("📤 Upload Skin Lesion Image", type=["jpg", "jpeg", "png"])
     
     if uploaded_file:
         image = Image.open(uploaded_file).convert("RGB")
-        st.success(
-            f"Hi {patient_name}, thank you for uploading your skin lesion image."
-        )
+        st.success(f"Hi {patient_name}, thank you for uploading your skin lesion image.")
         
         col1, col2 = st.columns([1, 1])
         
@@ -95,128 +103,43 @@ elif page == "🔍 Predict":
             predicted_class = np.argmax(raw_predict)
             confidence = np.max(raw_predict) * 100
             
-            st.write(f"**Raw Output:** {raw_predict}")
-            st.write(f"**Predicted:** {labels[predicted_class]}")
+            st.write(f"**Raw:** {raw_predict}")
+            st.write(f"**Class:** {labels[predicted_class]}")
             
         except Exception as e:
             st.error(f"Error: {str(e)}")
             st.stop()
         
         with col2:
-            st.subheader("🧾 Medical Screening Report")
-            st.write(f"**Patient Name:** {patient_name}")
-            st.write(f"**Patient ID:** {patient_id}")
+            st.subheader("🧾 Report")
+            st.write(f"**Name:** {patient_name}")
+            st.write(f"**ID:** {patient_id}")
             st.write(f"**Age:** {patient_age}")
-            st.write(f"**Gender:** {gender}")
             st.divider()
             
             if predicted_class == 0:
                 st.error("⚠️ MELANOMA DETECTED")
-                st.metric(
-                    "Confidence Score",
-                    f"{confidence:.2f}%"
-                )
-                st.warning("""
-                Recommendation:
-                • Consult a dermatologist immediately.
-                • Perform additional clinical examination.
-                • Consider biopsy confirmation.
-                """)
+                st.metric("Confidence", f"{confidence:.2f}%")
+                st.warning("Consult a dermatologist immediately.")
             else:
                 st.success("✅ NOT MELANOMA")
-                st.metric(
-                    "Confidence Score",
-                    f"{confidence:.2f}%"
-                )
-                st.info("""
-                Recommendation:
-                • No melanoma detected by the model.
-                • Continue regular skin monitoring.
-                • Consult a dermatologist if symptoms persist.
-                """)
-        
-        st.divider()
-        st.subheader("📋 Final Result")
-        
-        if predicted_class == 0:
-            st.error(
-                f"""
-                Patient: {patient_name}
-                Result: MELANOMA DETECTED
-                Confidence: {confidence:.2f}%
-                """
-            )
-        else:
-            st.success(
-                f"""
-                Patient: {patient_name}
-                Result: NOT MELANOMA
-                Confidence: {confidence:.2f}%
-                """
-            )
+                st.metric("Confidence", f"{confidence:.2f}%")
+                st.info("No melanoma detected. Continue regular monitoring.")
 
 elif page == "📊 Model Performance":
     st.title("📊 Model Performance")
     col1, col2 = st.columns(2)
-    col1.metric("Training Accuracy", "73.36%")
-    col2.metric("Validation Accuracy", "77.48%")
-    st.divider()
-    st.markdown("""
-    ### Model Summary
-    - DenseNet121 with Transfer Learning
-    - Input Size: 32 × 32
-    - Architecture: AveragePooling2D → Flatten → Dense(128) → Dropout(0.3) → Dense(2, softmax)
-    - Optimizer: Adam
-    - Loss: Categorical Crossentropy
-    """)
+    col1.metric("Accuracy", "77.48%")
+    col2.metric("Framework", "DenseNet121")
 
 elif page == "📂 Dataset Info":
-    st.title("📂 Dataset Information")
-    st.markdown("""
-    ### Dataset Structure
-    Dataset/
-    ├── Melanoma
-    └── NotMelanoma
-    
-    ### Classes
-    • Melanoma (Index 0)
-    • Not Melanoma (Index 1)
-    
-    ### Total Images
-    • 10,682 Images
-    
-    ### Source
-    HAM10000 inspired skin lesion dataset.
-    """)
+    st.title("📂 Dataset")
+    st.write("Melanoma: Class 0")
+    st.write("Not Melanoma: Class 1")
+    st.write("Total: 10,682 images")
 
 elif page == "👨‍💻 About":
-    st.title("👨‍💻 About Project")
-    st.markdown("""
-    ## Melanoma Skin Cancer Detection
-    
-    This application uses Artificial Intelligence and Deep Learning
-    to classify skin lesion images.
-    
-    ### Technologies Used
-    - Python
-    - TensorFlow / Keras
-    - Streamlit
-    - NumPy
-    - OpenCV
-    - Pillow (PIL)
-    
-    ### Model Architecture
-    - DenseNet121 with Transfer Learning
-    - 2-Class Binary Classification
-    - Training Dataset: HAM10000
-    
-    ### Developed By
-    Koushik Arnuri
-    
-    ### Important Disclaimer
-    ⚠️ This application is intended for **educational and research purposes only**.
-    
-    It should **NOT** be used as a substitute for professional medical advice, diagnosis, or treatment.
-    
-    Always consult a qualified dermatologist or healthcare professional for medical concerns.
-    """)
+    st.title("About")
+    st.write("Melanoma Detection using Deep Learning")
+    st.write("Developer: Koushik Arnuri")
+    st.write("⚠️ Educational use only - NOT for medical diagnosis")
