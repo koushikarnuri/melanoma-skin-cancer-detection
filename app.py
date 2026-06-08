@@ -144,8 +144,8 @@ elif page == "🔍 Predict":
             melanoma_prob = float(raw_output[0][0])
             not_melanoma_prob = float(raw_output[0][1])
 
-            st.write(f"Melanoma: {melanoma_prob:.4f}")
-            st.write(f"Not Melanoma: {not_melanoma_prob:.4f}")
+            st.write(f"Melanoma Prob: {melanoma_prob:.4f}")
+            st.write(f"Not Melanoma Prob: {not_melanoma_prob:.4f}")
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
@@ -162,9 +162,9 @@ elif page == "🔍 Predict":
 
             st.divider()
 
-            if melanoma_prob > not_melanoma_prob:
+            if melanoma_prob < not_melanoma_prob:
 
-                confidence = melanoma_prob * 100
+                confidence = not_melanoma_prob * 100
 
                 st.error("⚠️ MELANOMA DETECTED")
 
@@ -183,7 +183,7 @@ elif page == "🔍 Predict":
 
             else:
 
-                confidence = not_melanoma_prob * 100
+                confidence = melanoma_prob * 100
 
                 st.success("✅ NOT MELANOMA")
 
@@ -204,7 +204,7 @@ elif page == "🔍 Predict":
 
         st.subheader("📋 Final Result")
 
-        if melanoma_prob > not_melanoma_prob:
+        if melanoma_prob < not_melanoma_prob:
 
             st.error(
                 f"""
@@ -298,6 +298,12 @@ elif page == "👨‍💻 About":
     - NumPy
     - Pillow (PIL)
 
+    ### Model Architecture
+
+    - DenseNet121 with Transfer Learning
+    - 2-Class Binary Classification
+    - Training Dataset: HAM10000
+
     ### Developed By
 
     Koushik Arnuri
@@ -307,4 +313,6 @@ elif page == "👨‍💻 About":
     This application is intended for educational and research purposes only.
 
     It should NOT be used as a substitute for professional medical advice, diagnosis, or treatment.
+
+    Always consult a qualified dermatologist or healthcare professional for medical concerns.
     """)
