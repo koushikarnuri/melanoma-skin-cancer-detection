@@ -1,7 +1,7 @@
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.layers import Dense, AveragePooling2D, Flatten, Dropout
 from tensorflow.keras.applications import DenseNet121
 from PIL import Image
 import numpy as np
@@ -20,12 +20,18 @@ def load_my_model():
         weights='imagenet'
     )
     
+    for layer in densenet.layers:
+        layer.trainable = False
+    
     x = densenet.output
-    x = GlobalAveragePooling2D()(x)
+    x = AveragePooling2D(pool_size=(1, 1))(x)
+    x = Flatten(name="flatten")(x)
     x = Dense(128, activation='relu')(x)
+    x = Dropout(0.3)(x)
     output = Dense(2, activation='softmax')(x)
     
     model = Model(inputs=densenet.input, outputs=output)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     
     try:
         model.load_weights("melanoma_model.keras")
@@ -133,19 +139,16 @@ elif page == "🔍 Predict":
 
         try:
             img = image.resize((32, 32))
-            img = np.array(img, dtype=np.float32)
-            img = img / 255.0
+            img = np.array(img, dtype=np.float32) / 255.0
             img = np.expand_dims(img, axis=0)
 
             raw_output = model.predict(img, verbose=0)
             
-            st.write(f"Raw Output: {raw_output}")
+            melanoma_prob = float(raw_output[0][0])
+            not_melanoma_prob = float(raw_output[0][1])
 
-            melanoma_prob = float(raw_output[0][1])
-            not_melanoma_prob = float(raw_output[0][0])
-
-            st.write(f"Melanoma Prob: {melanoma_prob:.4f}")
-            st.write(f"Not Melanoma Prob: {not_melanoma_prob:.4f}")
+            st.write(f"**Melanoma Prob:** {melanoma_prob:.4f}")
+            st.write(f"**Not Melanoma Prob:** {not_melanoma_prob:.4f}")
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
@@ -250,9 +253,9 @@ elif page == "📊 Model Performance":
     ### Model Summary
 
     - DenseNet121 with Transfer Learning
-    - 2-Class Classification
-    - Input: 32 × 32
-    - GlobalAveragePooling2D + Dense(128) + Softmax
+    - AveragePooling2D → Flatten → Dense(128) → Dense(2)
+    - Input Size: 32 × 32
+    - 2-Class Softmax Output
     """)
 
 elif page == "📂 Dataset Info":
@@ -298,12 +301,6 @@ elif page == "👨‍💻 About":
     - NumPy
     - Pillow (PIL)
 
-    ### Model Architecture
-
-    - DenseNet121 with Transfer Learning
-    - 2-Class Binary Classification
-    - Training Dataset: HAM10000
-
     ### Developed By
 
     Koushik Arnuri
@@ -312,7 +309,5 @@ elif page == "👨‍💻 About":
 
     This application is intended for educational and research purposes only.
 
-    It should NOT be used as a substitute for professional medical advice, diagnosis, or treatment.
-
-    Always consult a qualified dermatologist or healthcare professional for medical concerns.
+    It should NOT be used as a substitute for professional medical advice.
     """)
