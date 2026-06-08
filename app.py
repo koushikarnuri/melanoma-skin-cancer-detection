@@ -1,7 +1,6 @@
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-from tensorflow.keras.applications.densenet import preprocess_input
 from PIL import Image
 import numpy as np
 
@@ -114,12 +113,13 @@ elif page == "🔍 Predict":
 
         try:
             img = image.resize((32, 32))
-            img = np.array(img).astype("float32")
+            img = np.array(img, dtype=np.float32)
+            img = img / 255.0
             img = np.expand_dims(img, axis=0)
-            img = preprocess_input(img)
 
             raw_output = model.predict(img, verbose=0)
             
+            st.write(f"Raw Output Shape: {raw_output.shape}")
             st.write(f"Raw Output: {raw_output}")
 
             melanoma_prob = float(raw_output[0][0])
