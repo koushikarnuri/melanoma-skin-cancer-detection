@@ -1,6 +1,8 @@
 import streamlit as st
 import tensorflow as tf
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.applications import DenseNet121
 from PIL import Image
 import numpy as np
 
@@ -12,7 +14,25 @@ st.set_page_config(
 
 @st.cache_resource
 def load_my_model():
-    return load_model("melanoma_model.keras")
+    densenet = DenseNet121(
+        input_shape=(32, 32, 3),
+        include_top=False,
+        weights='imagenet'
+    )
+    
+    x = densenet.output
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(128, activation='relu')(x)
+    output = Dense(2, activation='softmax')(x)
+    
+    model = Model(inputs=densenet.input, outputs=output)
+    
+    try:
+        model.load_weights("melanoma_model.keras")
+    except:
+        st.warning("Could not load weights")
+    
+    return model
 
 model = load_my_model()
 
@@ -119,14 +139,13 @@ elif page == "🔍 Predict":
 
             raw_output = model.predict(img, verbose=0)
             
-            st.write(f"Raw Output Shape: {raw_output.shape}")
             st.write(f"Raw Output: {raw_output}")
 
             melanoma_prob = float(raw_output[0][0])
             not_melanoma_prob = float(raw_output[0][1])
 
-            st.write(f"Melanoma Prob: {melanoma_prob:.4f}")
-            st.write(f"Not Melanoma Prob: {not_melanoma_prob:.4f}")
+            st.write(f"Melanoma: {melanoma_prob:.4f}")
+            st.write(f"Not Melanoma: {not_melanoma_prob:.4f}")
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
@@ -230,11 +249,10 @@ elif page == "📊 Model Performance":
     st.markdown("""
     ### Model Summary
 
-    - CNN Based Architecture (DenseNet121)
-    - 2-Class Classification (Softmax)
-    - Input Size: 32 × 32
-    - Optimizer: Adam
-    - Loss Function: Categorical Crossentropy
+    - DenseNet121 with Transfer Learning
+    - 2-Class Classification
+    - Input: 32 × 32
+    - GlobalAveragePooling2D + Dense(128) + Softmax
     """)
 
 elif page == "📂 Dataset Info":
@@ -280,12 +298,6 @@ elif page == "👨‍💻 About":
     - NumPy
     - Pillow (PIL)
 
-    ### Model Architecture
-
-    - DenseNet121 with Transfer Learning
-    - 2-Class Binary Classification
-    - Training Dataset: HAM10000
-
     ### Developed By
 
     Koushik Arnuri
@@ -295,6 +307,4 @@ elif page == "👨‍💻 About":
     This application is intended for educational and research purposes only.
 
     It should NOT be used as a substitute for professional medical advice, diagnosis, or treatment.
-
-    Always consult a qualified dermatologist or healthcare professional for medical concerns.
     """)
