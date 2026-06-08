@@ -126,12 +126,12 @@ elif page == "🔍 Predict":
                 use_container_width=True
             )
 
-        # FIXED: Preprocessing with 32x32 input size
-        img = image.resize((32, 32))
+        # FIXED: Preprocessing with 224x224 for DenseNet121
+        img = image.resize((224, 224))
         img = np.array(img).astype("float32") / 255.0
         img = np.expand_dims(img, axis=0)
 
-        # FIXED: Get prediction
+        # Get prediction
         prediction = float(model.predict(img, verbose=0)[0][0])
 
         # Debug: Show raw prediction
@@ -148,7 +148,7 @@ elif page == "🔍 Predict":
 
             st.divider()
 
-            # FIXED: Corrected threshold logic (>0.5 = melanoma)
+            # Prediction logic
             if prediction > 0.5:
 
                 confidence = prediction * 100
@@ -191,7 +191,6 @@ elif page == "🔍 Predict":
 
         st.subheader("📋 Final Result")
 
-        # FIXED: Corrected logic matches above
         if prediction > 0.5:
 
             st.error(
@@ -242,7 +241,7 @@ elif page == "📊 Model Performance":
 
     - CNN Based Architecture (DenseNet121)
     - Binary Classification
-    - Input Size: 32 × 32
+    - Input Size: 224 × 224
     - Optimizer: Adam
     - Loss Function: Binary Crossentropy
     
@@ -304,7 +303,7 @@ elif page == "👨‍💻 About":
     ### Model Architecture
 
     - DenseNet121 with Transfer Learning
-    - Input: 32 × 32 RGB images
+    - Input: 224 × 224 RGB images
     - Output: Binary classification (Melanoma / Not Melanoma)
     - Training Dataset: HAM10000
 
