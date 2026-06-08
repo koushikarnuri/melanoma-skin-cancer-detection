@@ -16,16 +16,7 @@ def load_my_model():
 
 model = load_my_model()
 
-def get_input_shape():
-    try:
-        return model.input_shape[1:3]
-    except:
-        return (224, 224)
-
-input_shape = get_input_shape()
-
 st.sidebar.title("🩺 Melanoma AI")
-st.sidebar.info(f"Model Input Size: {input_shape[0]} × {input_shape[1]}")
 
 page = st.sidebar.radio(
     "Navigation",
@@ -121,30 +112,22 @@ elif page == "🔍 Predict":
             )
 
         try:
-            h, w = input_shape
-            img = image.resize((int(w), int(h)))
+            img = image.resize((64, 64))
             img = np.array(img).astype("float32") / 255.0
             img = np.expand_dims(img, axis=0)
 
             raw_output = model.predict(img, verbose=0)
             
-            st.write(f"Raw Model Output Shape: {raw_output.shape}")
-            st.write(f"Raw Values: {raw_output}")
+            st.write(f"Raw Output: {raw_output}")
 
-            if raw_output.shape[-1] == 1:
-                prediction = float(raw_output[0][0])
-                st.write("Detected: Single output (sigmoid)")
-            elif raw_output.shape[-1] == 2:
-                prediction = float(raw_output[0][1])
-                st.write("Detected: Two-class output")
-            else:
-                prediction = float(raw_output[0][0])
-                st.write("Detected: Custom output shape")
+            melanoma_prob = float(raw_output[0][0])
+            not_melanoma_prob = float(raw_output[0][1])
 
-            st.write(f"Prediction Score: {prediction:.4f}")
+            st.write(f"Melanoma Prob: {melanoma_prob:.4f}")
+            st.write(f"Not Melanoma Prob: {not_melanoma_prob:.4f}")
 
         except Exception as e:
-            st.error(f"Error during prediction: {str(e)}")
+            st.error(f"Error: {str(e)}")
             st.stop()
 
         with col2:
@@ -158,9 +141,9 @@ elif page == "🔍 Predict":
 
             st.divider()
 
-            if prediction > 0.5:
+            if melanoma_prob > not_melanoma_prob:
 
-                confidence = prediction * 100
+                confidence = melanoma_prob * 100
 
                 st.error("⚠️ MELANOMA DETECTED")
 
@@ -179,7 +162,7 @@ elif page == "🔍 Predict":
 
             else:
 
-                confidence = (1 - prediction) * 100
+                confidence = not_melanoma_prob * 100
 
                 st.success("✅ NOT MELANOMA")
 
@@ -200,7 +183,7 @@ elif page == "🔍 Predict":
 
         st.subheader("📋 Final Result")
 
-        if prediction > 0.5:
+        if melanoma_prob > not_melanoma_prob:
 
             st.error(
                 f"""
@@ -242,21 +225,14 @@ elif page == "📊 Model Performance":
 
     st.divider()
 
-    h, w = input_shape
-
-    st.markdown(f"""
+    st.markdown("""
     ### Model Summary
 
     - CNN Based Architecture (DenseNet121)
-    - Binary Classification
-    - Input Size: {int(w)} × {int(h)}
+    - 2-Class Classification (Softmax)
+    - Input Size: 64 × 64
     - Optimizer: Adam
-    - Loss Function: Binary Crossentropy
-    
-    ### Prediction Logic
-    
-    - Prediction > 0.5 → Melanoma Detected
-    - Prediction ≤ 0.5 → Not Melanoma
+    - Loss Function: Categorical Crossentropy
     """)
 
 elif page == "📂 Dataset Info":
@@ -305,7 +281,7 @@ elif page == "👨‍💻 About":
     ### Model Architecture
 
     - DenseNet121 with Transfer Learning
-    - Binary Classification Model
+    - 2-Class Binary Classification
     - Training Dataset: HAM10000
 
     ### Developed By
