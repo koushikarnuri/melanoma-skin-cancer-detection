@@ -1,6 +1,7 @@
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.densenet import preprocess_input
 from PIL import Image
 import numpy as np
 
@@ -112,9 +113,10 @@ elif page == "🔍 Predict":
             )
 
         try:
-            img = image.resize((64, 64))
-            img = np.array(img).astype("float32") / 255.0
+            img = image.resize((32, 32))
+            img = np.array(img).astype("float32")
             img = np.expand_dims(img, axis=0)
+            img = preprocess_input(img)
 
             raw_output = model.predict(img, verbose=0)
             
@@ -230,7 +232,7 @@ elif page == "📊 Model Performance":
 
     - CNN Based Architecture (DenseNet121)
     - 2-Class Classification (Softmax)
-    - Input Size: 64 × 64
+    - Input Size: 32 × 32
     - Optimizer: Adam
     - Loss Function: Categorical Crossentropy
     """)
