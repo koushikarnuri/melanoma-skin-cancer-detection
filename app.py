@@ -4,28 +4,28 @@ from tensorflow.keras.models import load_model
 from PIL import Image
 import numpy as np
 
-# =========================
-# PAGE CONFIG
-# =========================
 st.set_page_config(
     page_title="Melanoma AI System",
     page_icon="🩺",
     layout="wide"
 )
 
-# =========================
-# LOAD MODEL
-# =========================
 @st.cache_resource
 def load_my_model():
     return load_model("melanoma_model.keras")
 
 model = load_my_model()
 
-# =========================
-# SIDEBAR
-# =========================
+def get_input_shape():
+    try:
+        return model.input_shape[1:3]
+    except:
+        return (224, 224)
+
+input_shape = get_input_shape()
+
 st.sidebar.title("🩺 Melanoma AI")
+st.sidebar.info(f"Model Input Size: {input_shape[0]} × {input_shape[1]}")
 
 page = st.sidebar.radio(
     "Navigation",
@@ -38,9 +38,6 @@ page = st.sidebar.radio(
     ]
 )
 
-# =========================
-# DASHBOARD
-# =========================
 if page == "🏠 Dashboard":
 
     st.title("🩺 Melanoma Skin Cancer Detection")
@@ -65,9 +62,6 @@ if page == "🏠 Dashboard":
     Upload a dermoscopic image and receive an instant prediction.
     """)
 
-# =========================
-# PREDICT PAGE
-# =========================
 elif page == "🔍 Predict":
 
     st.title("🩺 Skin Cancer Screening")
@@ -126,16 +120,32 @@ elif page == "🔍 Predict":
                 use_container_width=True
             )
 
-        # FIXED: Preprocessing with 224x224 for DenseNet121
-        img = image.resize((224, 224))
-        img = np.array(img).astype("float32") / 255.0
-        img = np.expand_dims(img, axis=0)
+        try:
+            h, w = input_shape
+            img = image.resize((int(w), int(h)))
+            img = np.array(img).astype("float32") / 255.0
+            img = np.expand_dims(img, axis=0)
 
-        # Get prediction
-        prediction = float(model.predict(img, verbose=0)[0][0])
+            raw_output = model.predict(img, verbose=0)
+            
+            st.write(f"Raw Model Output Shape: {raw_output.shape}")
+            st.write(f"Raw Values: {raw_output}")
 
-        # Debug: Show raw prediction
-        st.write(f"**Raw Prediction Score:** {prediction:.4f}")
+            if raw_output.shape[-1] == 1:
+                prediction = float(raw_output[0][0])
+                st.write("Detected: Single output (sigmoid)")
+            elif raw_output.shape[-1] == 2:
+                prediction = float(raw_output[0][1])
+                st.write("Detected: Two-class output")
+            else:
+                prediction = float(raw_output[0][0])
+                st.write("Detected: Custom output shape")
+
+            st.write(f"Prediction Score: {prediction:.4f}")
+
+        except Exception as e:
+            st.error(f"Error during prediction: {str(e)}")
+            st.stop()
 
         with col2:
 
@@ -148,7 +158,6 @@ elif page == "🔍 Predict":
 
             st.divider()
 
-            # Prediction logic
             if prediction > 0.5:
 
                 confidence = prediction * 100
@@ -215,9 +224,6 @@ elif page == "🔍 Predict":
                 """
             )
 
-# =========================
-# MODEL PERFORMANCE
-# =========================
 elif page == "📊 Model Performance":
 
     st.title("📊 Model Performance")
@@ -236,24 +242,23 @@ elif page == "📊 Model Performance":
 
     st.divider()
 
-    st.markdown("""
+    h, w = input_shape
+
+    st.markdown(f"""
     ### Model Summary
 
     - CNN Based Architecture (DenseNet121)
     - Binary Classification
-    - Input Size: 224 × 224
+    - Input Size: {int(w)} × {int(h)}
     - Optimizer: Adam
     - Loss Function: Binary Crossentropy
     
     ### Prediction Logic
     
-    - Prediction > 0.5 → **Melanoma Detected**
-    - Prediction ≤ 0.5 → **Not Melanoma**
+    - Prediction > 0.5 → Melanoma Detected
+    - Prediction ≤ 0.5 → Not Melanoma
     """)
 
-# =========================
-# DATASET PAGE
-# =========================
 elif page == "📂 Dataset Info":
 
     st.title("📂 Dataset Information")
@@ -279,9 +284,6 @@ elif page == "📂 Dataset Info":
     HAM10000 inspired skin lesion dataset.
     """)
 
-# =========================
-# ABOUT PAGE
-# =========================
 elif page == "👨‍💻 About":
 
     st.title("👨‍💻 About Project")
@@ -303,8 +305,7 @@ elif page == "👨‍💻 About":
     ### Model Architecture
 
     - DenseNet121 with Transfer Learning
-    - Input: 224 × 224 RGB images
-    - Output: Binary classification (Melanoma / Not Melanoma)
+    - Binary Classification Model
     - Training Dataset: HAM10000
 
     ### Developed By
@@ -313,11 +314,9 @@ elif page == "👨‍💻 About":
 
     ### Important Disclaimer
 
-    ⚠️ **MEDICAL DISCLAIMER**
+    This application is intended for educational and research purposes only.
 
-    This application is intended for **educational and research purposes only**.
-
-    It should **NOT** be used as a substitute for professional medical advice, diagnosis, or treatment.
+    It should NOT be used as a substitute for professional medical advice, diagnosis, or treatment.
 
     Always consult a qualified dermatologist or healthcare professional for medical concerns.
     """)
