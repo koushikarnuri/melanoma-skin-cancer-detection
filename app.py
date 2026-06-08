@@ -134,7 +134,7 @@ elif page == "🔍 Predict":
 
             st.divider()
 
-            if predicted_class == 0:
+            if predicted_class == 1:
 
                 st.error("⚠️ MELANOMA DETECTED")
 
@@ -172,7 +172,7 @@ elif page == "🔍 Predict":
 
         st.subheader("📋 Final Result")
 
-        if predicted_class == 0:
+        if predicted_class == 1:
 
             st.error(
                 f"""
@@ -237,8 +237,8 @@ elif page == "📂 Dataset Info":
 
     ### Classes
 
-    • Melanoma (Index 0)
-    • Not Melanoma (Index 1)
+    • Melanoma (Index 1)
+    • Not Melanoma (Index 0)
 
     ### Total Images
 
